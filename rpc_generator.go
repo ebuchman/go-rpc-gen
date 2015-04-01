@@ -22,10 +22,10 @@ var (
 	interfaceF = flag.String("interface", "", "interface type to define the rpc methods on")
 	typeF      = flag.String("type", "", "comma separated list of types that should implement the interface")
 	pkgF       = flag.String("pkg", "", "package containing functions providing the core functionality for the rpc")
-	outF       = flag.String("out", "", "output package for client methods")
+	outF       = flag.String("out", "_methods.go", "output file for client methods")
 	outPkgF    = flag.String("out-pkg", "", "name of the package for which code is to be generated")
 	excludeF   = flag.String("exclude", "", "comma separated list of files to exclude public functions from (relative to pkg)")
-	templatesF = flag.String("templates", ".", "file/s in which the template functions are located")
+	//templatesF = flag.String("templates", ".", "file/s in which the template functions are located")
 )
 
 func main() {
@@ -39,8 +39,6 @@ func main() {
 	excludes := strings.Split(*excludeF, ",")
 	outPkg := *outPkgF
 	//	templateFiles := strings.Split(*templatesF, ",")
-
-	_ = outFile
 
 	fset := gotoken.NewFileSet() // positions are relative to fset
 
@@ -118,15 +116,14 @@ type %s interface{
 
 	//fmt.Println(string(buf.Bytes()))
 	// save buffer to file
-	newFile := "client_methods.go"
 	data := buf.Bytes()
 
-	node, err := goparser.ParseFile(fset, "", data, 0)
+	node, err := goparser.ParseFile(fset, "", data, goparser.ParseComments)
 	if err != nil {
 		panic(err)
 	}
 
-	f, err := os.Create(newFile)
+	f, err := os.Create(outFile)
 	if err != nil {
 		panic(err)
 	}

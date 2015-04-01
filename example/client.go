@@ -20,7 +20,7 @@ type Response struct {
 	Error  string
 }
 
-//go:generate go-rpc-gen -interface Client -pkg core -type *ClientHTTP,*ClientJSON -exclude pipe.go -out-pkg rpc
+//go:generate go-rpc-gen -interface Client -pkg core -type *ClientHTTP,*ClientJSON -exclude pipe.go -out-pkg rpc -out client_methods.go
 
 type ClientJSON struct {
 	addr string
