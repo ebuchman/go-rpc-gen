@@ -1,18 +1,18 @@
 package core
 
 import (
-	"github.com/tendermint/tendermint/consensus"
-	mempl "github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/types"
+	bc "github.com/tendermint/tendermint2/blockchain"
+	"github.com/tendermint/tendermint2/consensus"
+	mempl "github.com/tendermint/tendermint2/mempool"
+	"github.com/tendermint/tendermint2/p2p"
 )
 
-var blockStore *types.BlockStore
+var blockStore *bc.BlockStore
 var consensusState *consensus.ConsensusState
 var mempoolReactor *mempl.MempoolReactor
 var p2pSwitch *p2p.Switch
 
-func SetPipeBlockStore(bs *types.BlockStore) {
+func SetPipeBlockStore(bs *bc.BlockStore) {
 	blockStore = bs
 }
 

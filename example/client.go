@@ -2,12 +2,16 @@ package rpc
 
 import (
 	"bytes"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
-	"github.com/tendermint/tendermint/binary"
+	"github.com/tendermint/tendermint2/binary"
+	"github.com/tendermint/tendermint2/rpc"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 )
 
 type Response struct {
@@ -16,7 +20,7 @@ type Response struct {
 	Error  string
 }
 
-//go:generate rpc-gen -interface Client -type ClientJSON,ClientHTTP -pkg core -excludes pipe.go -out .
+//go:generate rpc-gen -interface Client -pkg core -type *ClientHTTP,*ClientJSON -exclude pipe.go -out-pkg rpc
 
 type ClientJSON struct {
 	addr string
@@ -106,13 +110,13 @@ func (c *ClientHTTP) RequestResponse(method string, values url.Values) (*Respons
 	return status, nil
 }
 
-func (c *ClientJSON) requestResponse(s rpc.JsonRpc) ([]byte, error) {
+func (c *ClientJSON) requestResponse(s rpc.JSONRPC) ([]byte, error) {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return nil, err
 	}
 	buf := bytes.NewBuffer(b)
-	resp, err = http.Post(c.addr, "text/json", buf)
+	resp, err := http.Post(c.addr, "text/json", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +131,7 @@ func (c *ClientJSON) requestResponse(s rpc.JsonRpc) ([]byte, error) {
 
 // first we define the base interface, which rpc-gen will further populate with generated methods
 
-//rpc-gen:define-interface Client
-/*
+/*rpc-gen:define-interface Client
 type Client interface {
 	Address() string // returns the remote address
 }
@@ -138,7 +141,7 @@ type Client interface {
 // first we declare that **packargsjson** should be replaced by a []string of **args**
 // then we declare how to pack args of different types into the []string
 
-//rpc-gen:define-set:packargsjson **args** []string
+//rpc-gen:define-set:packargsjson {{args}} []string
 
 //rpc-gen:packargsjson []byte
 func bytesToString(b []byte) (string, error) {
@@ -151,17 +154,31 @@ func intToString(b int) (string, error) {
 }
 
 //rpc-gen:packargsjson default
-func binaryWriter(b interface{}) (string, error) {
-	buf, n, err := new(bytes.Buffer), new(int64), new(error)
-	binary.WriteJSON(b, buf, n, err)
-	return string(buf.Bytes()), *err
+func binaryWriter(args ...interface{}) ([]interface{}, error) {
+	list := []interface{}{}
+	for _, a := range args {
+		buf, n, err := new(bytes.Buffer), new(int64), new(error)
+		binary.WriteJSON(a, buf, n, err)
+		if *err != nil {
+			return nil, *err
+		}
+		list = append(list, buf.Bytes())
+
+	}
+	return list, nil
 }
 
 // for HTTP, we have a single function that converts args to values
 
-//rpc-gen:define-func:packargshttp **args** url.Values
+//rpc-gen:define-func:packargshttp {{args}} url.Values
 func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error) {
 	values := make(url.Values)
+	if len(argNames) == 0 {
+		return values, nil
+	}
+	if len(argNames) != len(args) {
+		return nil, fmt.Errorf("argNames and args have different lengths: %d, %d", len(argNames), len(args))
+	}
 	slice, err := argsToJson(args...)
 	if err != nil {
 		return nil, err
@@ -177,15 +194,23 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 	return values, nil
 }
 
+/*rpc-gen:imports:
+github.com/tendermint/tendermint2/binary
+github.com/tendermint/tendermint2/rpc
+net/http
+io/ioutil
+fmt
+*/
+
 // Template functions to be filled in
 
-/*rpc-gen:template:*ClientJSON func (c *ClientJSON) {{name}}({{args}}) ({{response}}, error) {
-	params, err := {{packargsjson}}
+/*rpc-gen:template:*ClientJSON func (c *ClientJSON) {{name}}({{args.def}}) ({{response}}) {
+	params, err := binaryWriter({{args.ident}})
 	if err != nil{
 		return nil, err
 	}
-	s := rpc.JsonRpc{
-		JsonRpc: "2.0",
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
 		Method:  {{lowername}},
 		Params:  params,
 		Id:      0,
@@ -196,7 +221,7 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 	}
 	var status struct {
 		Status string
-		Data   {{response}}
+		Data   {{response.0}}
 		Error  string
 	}
 	binary.ReadJSON(&status, body, &err)
@@ -209,12 +234,12 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 	return status.Data, nil
 }*/
 
-/*rpc-gen:template:*ClientHTTP func (c *ClientHTTP) {{name}}({{args}}) ({{response}}, error){
-	values, err := {{packargshttp(argNames)}}
+/*rpc-gen:template:*ClientHTTP func (c *ClientHTTP) {{name}}({{args.def}}) ({{response}}){
+	values, err := argsToURLValues({{args.name}}, {{args.ident}})
 	if err != nil{
 		return nil, err
 	}
-	resp, err := http.PostForm(requestAddr+{{lowername}}, values)
+	resp, err := http.PostForm(c.addr+{{lowername}}, values)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +250,7 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 	}
 	var status struct {
 		Status string
-		Data   {{response}}
+		Data   {{response.0}}
 		Error  string
 	}
 	binary.ReadJSON(&status, body, &err)
@@ -235,5 +260,5 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 	if status.Error != ""{
 		return nil, fmt.Errorf(status.Error)
 	}
-	return status.Data.Account
+	return status.Data, nil
 }*/

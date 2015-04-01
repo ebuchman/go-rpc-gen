@@ -17,6 +17,10 @@ type parser struct {
 	jobs []Job    // things to do
 }
 
+func (p *parser) results() ([]string, []Job) {
+	return p.txt, p.jobs
+}
+
 type Job struct {
 	ident string
 	args  []string
