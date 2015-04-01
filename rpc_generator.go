@@ -10,11 +10,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 var (
@@ -28,53 +25,6 @@ var (
 	excludeF   = flag.String("exclude", "", "comma separated list of files to exclude public functions from (relative to pkg)")
 	templatesF = flag.String("templates", ".", "file/s in which the template functions are located")
 )
-
-/*
-	RpcGen language spec:
-	There are `definitions` and `templates`.
-	Templates use definitions.
-	A definition is either an `interface`, a `function`, or a `set`.
-	A `set` is a map from types (eg. "string", "[]byte") to functions that serialize that type
-*/
-
-type DefInterface struct {
-	name string
-	code string
-}
-
-type DefFunction struct {
-	name string
-	code string
-}
-
-type DefSet struct {
-	code string
-}
-
-func onePkg(pkgs map[string]*ast.Package) *ast.Package {
-	if len(pkgs) > 1 {
-		panic("More than one package found. Exiting")
-	}
-	pkg := new(ast.Package)
-	var pkgname string
-	for n, p := range pkgs {
-		pkg = p
-		pkgname = n
-	}
-	fmt.Println("pkgname:", pkgname)
-	_ = pkgname
-	return pkg
-}
-
-func goImportPathFromDir(dir string) (string, error) {
-	dir, _ = filepath.Abs(dir)
-	prefix := path.Join(GoPath, "src")
-	if strings.HasPrefix(dir, prefix) {
-		return dir[len(prefix)+1:], nil
-	} else {
-		return "", fmt.Errorf("%s not on the $GOPATH", dir)
-	}
-}
 
 func main() {
 
@@ -175,29 +125,11 @@ type %s interface{
 	}
 }
 
-func joinArgTypes(names, types []string) string {
-	union := make([]string, len(names))
-	for i, n := range names {
-		union[i] = fmt.Sprintf("%s %s", n, types[i])
-	}
-	return strings.Join(union, ", ")
-}
-
-func CamelToLower(s string) string {
-	lower := ""
-	for i := 0; i < len(s); i++ {
-		if unicode.IsUpper(rune(s[i])) && i != 0 {
-			lower += "_"
-		}
-		lower += string(unicode.ToLower(rune(s[i])))
-	}
-	return lower
-}
-
 func defToCall(def string, args []string) string {
 	return ""
 }
 
+// interpret/replace simple commands found in templates
 func (rg *RpcGen) compileJob(buf *bytes.Buffer, f Func, job Job) error {
 	argNames := f.ArgNames
 	argTypes := f.ArgTypes
@@ -252,6 +184,7 @@ func (rg *RpcGen) compileJob(buf *bytes.Buffer, f Func, job Job) error {
 	return nil
 }
 
+// implement a template for a given function
 func (rg *RpcGen) makeMethod(buf *bytes.Buffer, f Func) error {
 	for i, t := range rg.txt {
 		// write the preceding text
@@ -268,12 +201,13 @@ func (rg *RpcGen) makeMethod(buf *bytes.Buffer, f Func) error {
 	return nil
 }
 
+// sets the context for implementing a template
 func (rg *RpcGen) SetContext(txt []string, jobs []Job) {
 	rg.txt = txt
 	rg.jobs = jobs
 }
 
-// parse the template. for each function, implement
+// parse the template. for each function, implement the template
 func (rg *RpcGen) implementInterface(clientType string, stringFuncs []*Func) ([]byte, error) {
 	tmp := rg.templates[clientType]
 	p := Parser(tmp)
@@ -291,20 +225,7 @@ func (rg *RpcGen) implementInterface(clientType string, stringFuncs []*Func) ([]
 	return buf.Bytes(), nil
 }
 
-func typeToString(typ ast.Expr) string {
-	switch t := typ.(type) {
-	case *ast.Ident:
-		return t.Name
-	case *ast.SelectorExpr:
-		return typeToString(t.X) + "." + t.Sel.String()
-	case *ast.StarExpr:
-		return "*" + typeToString(t.X)
-	case *ast.ArrayType:
-		return "[]" + typeToString(t.Elt)
-	}
-	panic(fmt.Sprintf("unknown type %v", reflect.TypeOf(typ)))
-}
-
+// clean string based representation of a go function
 type Func struct {
 	Name        string
 	ArgNames    []string
@@ -321,6 +242,7 @@ func NewFunc(name string, nargs, nret int) Func {
 	}
 }
 
+// convert a function object to a clean string representation of args and returns
 func objectToStringFunc(name string, obj *ast.Object) Func {
 	fdecl := obj.Decl.(*ast.FuncDecl)
 	ftype := fdecl.Type
@@ -337,29 +259,6 @@ func objectToStringFunc(name string, obj *ast.Object) Func {
 		thisFunc.ReturnTypes[i] = typeToString(r.Type)
 	}
 	return thisFunc
-}
-
-/*
-
-	neededImps := make(map[string]string)
-	for _, f := range stringFuncs {
-	}
-	fmt.Println("needed!", neededImps)
-	return neededImps
-*/
-
-func updateFunctionAndImport(f *Func, allImps map[string]string, neededImps map[string]string, pkgName, pkgPath string) {
-	fmt.Println(f)
-	for i, arg := range f.ArgTypes {
-		fmt.Println(i, arg)
-		f.ArgTypes[i] = updateImport(f, arg, allImps, &neededImps, pkgName, pkgPath)
-	}
-
-	for i, ret := range f.ReturnTypes {
-		fmt.Println(i, ret)
-		f.ReturnTypes[i] = updateImport(f, ret, allImps, &neededImps, pkgName, pkgPath)
-	}
-
 }
 
 // create an interface definition containing all defined methods
@@ -488,86 +387,27 @@ func initRpcGen(pkg *ast.Package) (*RpcGen, error) {
 	return rpcGen, nil
 }
 
-// return a list of all comments
-func getComments(pkg *ast.Package) []*ast.Comment {
-	// is this a comment or what
-	comments := []*ast.Comment{}
-	fs := pkg.Files
-	for _, f := range fs {
-		for _, c := range f.Comments {
-			for _, cc := range c.List {
-				comments = append(comments, cc)
-			}
-		}
+// update a function's arg/return types by appending the package name if necessary
+// and add packages to neededImps
+func updateFunctionAndImport(f *Func, allImps map[string]string, neededImps map[string]string, pkgName, pkgPath string) {
+	fmt.Println(f)
+	for i, arg := range f.ArgTypes {
+		fmt.Println(i, arg)
+		f.ArgTypes[i] = updateImport(arg, allImps, &neededImps, pkgName, pkgPath)
 	}
-	return comments
+
+	for i, ret := range f.ReturnTypes {
+		fmt.Println(i, ret)
+		f.ReturnTypes[i] = updateImport(ret, allImps, &neededImps, pkgName, pkgPath)
+	}
+
 }
 
-// get list of all required imports for the args/returns of the
-// given functions.
-func getImports(pkg *ast.Package, pkgPath string) map[string]string {
-	allImps := make(map[string]string)
-	fs := pkg.Files
-	for _, f := range fs {
-		for _, imp := range f.Imports {
-			impPath := imp.Path
-			impPathVal := strings.Trim(impPath.Value, "\"")
-			name := path.Base(impPathVal)
-			impName := imp.Name
-			if impName != nil {
-				name = impName.Name
-			}
-			allImps[name] = impPathVal
-			fmt.Println("set imp", name, impPathVal)
-		}
-	}
-	return allImps
-}
-
-func isBuiltin(arg string) bool {
-	arg, _ = stripPointerArray(arg)
-	switch arg {
-	case "bool",
-		"byte",
-		"complex128",
-		"complex64",
-		"error",
-		"float32",
-		"float64",
-		"int",
-		"int16",
-		"int32",
-		"int64",
-		"int8",
-		"rune",
-		"string",
-		"uint",
-		"uint16",
-		"uint32",
-		"uint64",
-		"uint8",
-		"uintptr":
-		return true
-	default:
-		return false
-	}
-}
-
-func stripPointerArray(imp string) (string, string) {
-	pre := ""
-	for i := 0; i < len(imp); i++ {
-		if strings.Contains("[]*", imp[i:i+1]) {
-			pre += imp[i : i+1]
-		}
-	}
-	return imp[len(pre):], pre
-}
-
-func updateImport(f *Func, arg string, allImps map[string]string, neededImps *map[string]string, pkgName, pkgPath string) string {
+// updateFunctionAndImport for a single arg/ret
+func updateImport(arg string, allImps map[string]string, neededImps *map[string]string, pkgName, pkgPath string) string {
 	// if there's a `.`, figure out the
 	// needed import
 	spl := strings.Split(arg, ".")
-	fmt.Println("ARG:", arg, spl)
 	if len(spl) > 1 {
 		imp := spl[0] // may have *s and []s
 		imp, _ = stripPointerArray(imp)
@@ -585,35 +425,4 @@ func updateImport(f *Func, arg string, allImps map[string]string, neededImps *ma
 		}
 	}
 	return arg
-}
-
-// returns a list of all exported functions in a pkg
-func getFuncs(pkg *ast.Package) map[string]*ast.Object {
-	objs := make(map[string]*ast.Object)
-	fs := pkg.Files
-	for _, f := range fs {
-		// Print the scope
-		for n, o := range f.Scope.Objects {
-			if o.Kind == ast.Fun && ast.IsExported(n) {
-				objs[n] = o
-			}
-		}
-
-	}
-	return objs
-}
-
-func returnFilter(excludes []string) func(os.FileInfo) bool {
-	return func(info os.FileInfo) bool {
-		name := info.Name()
-		var excluded bool
-		for _, ex := range excludes {
-			if name == ex {
-				excluded = true
-				break
-			}
-		}
-		return !info.IsDir() && !excluded && path.Ext(name) == ".go" && !strings.HasSuffix(name, "_test.go")
-	}
-
 }

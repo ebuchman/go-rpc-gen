@@ -137,23 +137,14 @@ type Client interface {
 }
 */
 
-// A list of functions for encoding data to json strings
-// first we declare that **packargsjson** should be replaced by a []string of **args**
-// then we declare how to pack args of different types into the []string
-
-//rpc-gen:define-set:packargsjson {{args}} []string
-
-//rpc-gen:packargsjson []byte
 func bytesToString(b []byte) (string, error) {
 	return "0x" + hex.EncodeToString(b), nil
 }
 
-//rpc-gen:packargsjson int
 func intToString(b int) (string, error) {
 	return strconv.Itoa(b), nil
 }
 
-//rpc-gen:packargsjson default
 func binaryWriter(args ...interface{}) ([]interface{}, error) {
 	list := []interface{}{}
 	for _, a := range args {
@@ -170,7 +161,6 @@ func binaryWriter(args ...interface{}) ([]interface{}, error) {
 
 // for HTTP, we have a single function that converts args to values
 
-//rpc-gen:define-func:packargshttp {{args}} url.Values
 func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error) {
 	values := make(url.Values)
 	if len(argNames) == 0 {

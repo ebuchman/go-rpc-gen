@@ -8,4 +8,6 @@ will make a new interface `Client`, with all the exported methods from the packa
 Two implementations of the interface are generated in this case, one on `*ClientHTTP` and one on `*ClientJSON`.
 The programs author is required to provide one rpc function template for each type, which `rpc-gen` will autocomplete.
 
-Run the above command in the example directory and examine the output.
+Run the above command in the example directory and examine the output (`client_methods.go`).
+The API generated is the same as that found in `examples/core`. Everything else is filler for the rpc mechanism,
+but `rpc-gen` is relatively agnostic.
