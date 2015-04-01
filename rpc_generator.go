@@ -11,6 +11,7 @@ import (
 	//"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -48,7 +49,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(corePkgs)
 	corePkg := onePkg(corePkgs)
 	coreFuncs := getFuncs(corePkg)
 	corePkgImportPath, err := goImportPathFromDir(dir)
@@ -92,7 +92,6 @@ type %s interface{
 	fmt.Fprintln(buf, "")
 	fmt.Fprintln(buf, "import(")
 	for n, im := range neededImports {
-		fmt.Println(n, im)
 		if n != path.Base(im) {
 			fmt.Fprintln(buf, "\t"+n+" \""+im+"\"")
 		} else {
@@ -280,12 +279,20 @@ func populateInterface(baseDef string, funcs map[string]*ast.Object, imports map
 
 	neededImps := make(map[string]string)
 
+	// sort functions alphabetically
+	funcNames := []string{}
+	for n, _ := range funcs {
+		funcNames = append(funcNames, n)
+	}
+	sort.Strings(funcNames)
+
 	// pull off the final }
 	baseDef = baseDef[:len(baseDef)-1]
 	// extract each functions string info,
 	// add to stringFuncs and append to interface def
 	i := 0 // using append on stringFuncs was breaking ...
-	for name, obj := range funcs {
+	for _, name := range funcNames {
+		obj := funcs[name]
 		baseDef += "\t" + name + "("
 		thisFunc := objectToStringFunc(name, obj)
 		updateFunctionAndImport(&thisFunc, imports, neededImps, pkgName, pkgPath)
@@ -372,9 +379,7 @@ func initRpcGen(pkg *ast.Package) (*RpcGen, error) {
 			//rpcGen.funcdefs[name] = defn
 		case "imports":
 			rest = txt[len("imports"):]
-			fmt.Println("REST:", rest)
 			spl := strings.Split(rest, "\n")
-			fmt.Println("SPL:", spl)
 			for _, s := range spl[1:] {
 				if strings.HasPrefix(s, "*") {
 					break
@@ -388,7 +393,6 @@ func initRpcGen(pkg *ast.Package) (*RpcGen, error) {
 					importPath = sp[0]
 					importName = path.Base(importPath)
 				}
-				fmt.Println(importName, importPath)
 				rpcGen.imports[importName] = importPath
 			}
 		default:
@@ -403,14 +407,11 @@ func initRpcGen(pkg *ast.Package) (*RpcGen, error) {
 // update a function's arg/return types by appending the package name if necessary
 // and add packages to neededImps
 func updateFunctionAndImport(f *Func, allImps map[string]string, neededImps map[string]string, pkgName, pkgPath string) {
-	fmt.Println(f)
 	for i, arg := range f.ArgTypes {
-		fmt.Println(i, arg)
 		f.ArgTypes[i] = updateImport(arg, allImps, &neededImps, pkgName, pkgPath)
 	}
 
 	for i, ret := range f.ReturnTypes {
-		fmt.Println(i, ret)
 		f.ReturnTypes[i] = updateImport(ret, allImps, &neededImps, pkgName, pkgPath)
 	}
 

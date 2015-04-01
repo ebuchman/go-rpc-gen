@@ -22,7 +22,6 @@ func onePkg(pkgs map[string]*ast.Package) *ast.Package {
 		pkg = p
 		pkgname = n
 	}
-	fmt.Println("pkgname:", pkgname)
 	_ = pkgname
 	return pkg
 }
@@ -103,7 +102,6 @@ func getImports(pkg *ast.Package, pkgPath string) map[string]string {
 				name = impName.Name
 			}
 			allImps[name] = impPathVal
-			fmt.Println("set imp", name, impPathVal)
 		}
 	}
 	return allImps
