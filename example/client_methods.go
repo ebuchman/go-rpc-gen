@@ -2,93 +2,33 @@
 
 package rpc
 
-import(
-	"io/ioutil"
-	"github.com/ebuchman/rpc-gen/example/core"
-	"github.com/tendermint/tendermint2/types"
-	"github.com/tendermint/tendermint2/account"
+import (
 	"fmt"
+	"github.com/ebuchman/go-rpc-gen/example/core"
+	"github.com/tendermint/tendermint2/account"
 	"github.com/tendermint/tendermint2/binary"
 	"github.com/tendermint/tendermint2/rpc"
+	"github.com/tendermint/tendermint2/types"
+	"io/ioutil"
 	"net/http"
 )
 
-
-type Client interface{
-
-	ListValidators() (*core.ResponseListValidators, error)
-	GenPrivAccount() (*core.ResponseGenPrivAccount, error)
+type Client interface {
 	Status() (*core.ResponseStatus, error)
 	NetInfo() (*core.ResponseNetInfo, error)
 	SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*core.ResponseSignTx, error)
-	GetAccount(address []byte) (*core.ResponseGetAccount, error)
-	ListAccounts() (*core.ResponseListAccounts, error)
+	GenPrivAccount() (*core.ResponseGenPrivAccount, error)
 	BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error)
 	GetBlock(height uint) (*core.ResponseGetBlock, error)
 	BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error)
-
-}
- func (c *ClientHTTP) ListValidators() (*core.ResponseListValidators, error){
-	values, err := argsToURLValues(nil, nil)
-	if err != nil{
-		return nil, err
-	}
-	resp, err := http.PostForm(c.addr+"list_validators", values)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseListValidators
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
-	if err != nil {
-		return nil, err
-	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
+	ListValidators() (*core.ResponseListValidators, error)
+	GetAccount(address []byte) (*core.ResponseGetAccount, error)
+	ListAccounts() (*core.ResponseListAccounts, error)
 }
 
- func (c *ClientHTTP) GenPrivAccount() (*core.ResponseGenPrivAccount, error){
+func (c *ClientHTTP) Status() (*core.ResponseStatus, error) {
 	values, err := argsToURLValues(nil, nil)
-	if err != nil{
-		return nil, err
-	}
-	resp, err := http.PostForm(c.addr+"gen_priv_account", values)
 	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseGenPrivAccount
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
-	if err != nil {
-		return nil, err
-	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientHTTP) Status() (*core.ResponseStatus, error){
-	values, err := argsToURLValues(nil, nil)
-	if err != nil{
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"status", values)
@@ -109,15 +49,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) NetInfo() (*core.ResponseNetInfo, error){
+func (c *ClientHTTP) NetInfo() (*core.ResponseNetInfo, error) {
 	values, err := argsToURLValues(nil, nil)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"net_info", values)
@@ -138,15 +78,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*core.ResponseSignTx, error){
-	values, err := argsToURLValues([]string{"tx" , "privAccounts"}, tx, privAccounts)
-	if err != nil{
+func (c *ClientHTTP) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*core.ResponseSignTx, error) {
+	values, err := argsToURLValues([]string{"tx", "privAccounts"}, tx, privAccounts)
+	if err != nil {
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"sign_tx", values)
@@ -167,47 +107,18 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) GetAccount(address []byte) (*core.ResponseGetAccount, error){
-	values, err := argsToURLValues([]string{"address"}, address)
-	if err != nil{
-		return nil, err
-	}
-	resp, err := http.PostForm(c.addr+"get_account", values)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseGetAccount
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
-	if err != nil {
-		return nil, err
-	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientHTTP) ListAccounts() (*core.ResponseListAccounts, error){
+func (c *ClientHTTP) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
 	values, err := argsToURLValues(nil, nil)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	resp, err := http.PostForm(c.addr+"list_accounts", values)
+	resp, err := http.PostForm(c.addr+"gen_priv_account", values)
 	if err != nil {
 		return nil, err
 	}
@@ -218,22 +129,22 @@ type Client interface{
 	}
 	var status struct {
 		Status string
-		Data   *core.ResponseListAccounts
+		Data   *core.ResponseGenPrivAccount
 		Error  string
 	}
 	binary.ReadJSON(&status, body, &err)
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error){
+func (c *ClientHTTP) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error) {
 	values, err := argsToURLValues([]string{"minHeight"}, minHeight)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"blockchain_info", values)
@@ -254,15 +165,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) GetBlock(height uint) (*core.ResponseGetBlock, error){
+func (c *ClientHTTP) GetBlock(height uint) (*core.ResponseGetBlock, error) {
 	values, err := argsToURLValues([]string{"height"}, height)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"get_block", values)
@@ -283,15 +194,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientHTTP) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error){
+func (c *ClientHTTP) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error) {
 	values, err := argsToURLValues([]string{"tx"}, tx)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	resp, err := http.PostForm(c.addr+"broadcast_tx", values)
@@ -312,25 +223,24 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) ListValidators() (*core.ResponseListValidators, error) {
-	params, err := binaryWriter(nil)
-	if err != nil{
+func (c *ClientHTTP) ListValidators() (*core.ResponseListValidators, error) {
+	values, err := argsToURLValues(nil, nil)
+	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "list_validators",
-		Params:  params,
-		Id:      0,
+	resp, err := http.PostForm(c.addr+"list_validators", values)
+	if err != nil {
+		return nil, err
 	}
-	body, err := c.requestResponse(s)
-	if err != nil{
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
 	}
 	var status struct {
@@ -342,145 +252,24 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
-	params, err := binaryWriter(nil)
-	if err != nil{
-		return nil, err
-	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "gen_priv_account",
-		Params:  params,
-		Id:      0,
-	}
-	body, err := c.requestResponse(s)
-	if err != nil{
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseGenPrivAccount
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
+func (c *ClientHTTP) GetAccount(address []byte) (*core.ResponseGetAccount, error) {
+	values, err := argsToURLValues([]string{"address"}, address)
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientJSON) Status() (*core.ResponseStatus, error) {
-	params, err := binaryWriter(nil)
-	if err != nil{
-		return nil, err
-	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "status",
-		Params:  params,
-		Id:      0,
-	}
-	body, err := c.requestResponse(s)
-	if err != nil{
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseStatus
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
+	resp, err := http.PostForm(c.addr+"get_account", values)
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientJSON) NetInfo() (*core.ResponseNetInfo, error) {
-	params, err := binaryWriter(nil)
-	if err != nil{
-		return nil, err
-	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "net_info",
-		Params:  params,
-		Id:      0,
-	}
-	body, err := c.requestResponse(s)
-	if err != nil{
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseNetInfo
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
-	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientJSON) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*core.ResponseSignTx, error) {
-	params, err := binaryWriter(tx, privAccounts)
-	if err != nil{
-		return nil, err
-	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "sign_tx",
-		Params:  params,
-		Id:      0,
-	}
-	body, err := c.requestResponse(s)
-	if err != nil{
-		return nil, err
-	}
-	var status struct {
-		Status string
-		Data   *core.ResponseSignTx
-		Error  string
-	}
-	binary.ReadJSON(&status, body, &err)
-	if err != nil {
-		return nil, err
-	}
-	if status.Error != ""{
-		return nil, fmt.Errorf(status.Error)
-	}
-	return status.Data, nil
-}
-
- func (c *ClientJSON) GetAccount(address []byte) (*core.ResponseGetAccount, error) {
-	params, err := binaryWriter(address)
-	if err != nil{
-		return nil, err
-	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "get_account",
-		Params:  params,
-		Id:      0,
-	}
-	body, err := c.requestResponse(s)
-	if err != nil{
 		return nil, err
 	}
 	var status struct {
@@ -492,25 +281,24 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) ListAccounts() (*core.ResponseListAccounts, error) {
-	params, err := binaryWriter(nil)
-	if err != nil{
+func (c *ClientHTTP) ListAccounts() (*core.ResponseListAccounts, error) {
+	values, err := argsToURLValues(nil, nil)
+	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
-		JSONRPC: "2.0",
-		Method:  "list_accounts",
-		Params:  params,
-		Id:      0,
+	resp, err := http.PostForm(c.addr+"list_accounts", values)
+	if err != nil {
+		return nil, err
 	}
-	body, err := c.requestResponse(s)
-	if err != nil{
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
 		return nil, err
 	}
 	var status struct {
@@ -522,15 +310,135 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error) {
+func (c *ClientJSON) Status() (*core.ResponseStatus, error) {
+	params, err := binaryWriter(nil)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "status",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseStatus
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) NetInfo() (*core.ResponseNetInfo, error) {
+	params, err := binaryWriter(nil)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "net_info",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseNetInfo
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*core.ResponseSignTx, error) {
+	params, err := binaryWriter(tx, privAccounts)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "sign_tx",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseSignTx
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
+	params, err := binaryWriter(nil)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "gen_priv_account",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseGenPrivAccount
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error) {
 	params, err := binaryWriter(minHeight)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	s := rpc.JSONRPC{
@@ -540,7 +448,7 @@ type Client interface{
 		Id:      0,
 	}
 	body, err := c.requestResponse(s)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	var status struct {
@@ -552,15 +460,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) GetBlock(height uint) (*core.ResponseGetBlock, error) {
+func (c *ClientJSON) GetBlock(height uint) (*core.ResponseGetBlock, error) {
 	params, err := binaryWriter(height)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	s := rpc.JSONRPC{
@@ -570,7 +478,7 @@ type Client interface{
 		Id:      0,
 	}
 	body, err := c.requestResponse(s)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	var status struct {
@@ -582,15 +490,15 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
- func (c *ClientJSON) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error) {
+func (c *ClientJSON) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error) {
 	params, err := binaryWriter(tx)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	s := rpc.JSONRPC{
@@ -600,7 +508,7 @@ type Client interface{
 		Id:      0,
 	}
 	body, err := c.requestResponse(s)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	var status struct {
@@ -612,9 +520,98 @@ type Client interface{
 	if err != nil {
 		return nil, err
 	}
-	if status.Error != ""{
+	if status.Error != "" {
 		return nil, fmt.Errorf(status.Error)
 	}
 	return status.Data, nil
 }
 
+func (c *ClientJSON) ListValidators() (*core.ResponseListValidators, error) {
+	params, err := binaryWriter(nil)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "list_validators",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseListValidators
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) GetAccount(address []byte) (*core.ResponseGetAccount, error) {
+	params, err := binaryWriter(address)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "get_account",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseGetAccount
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}
+
+func (c *ClientJSON) ListAccounts() (*core.ResponseListAccounts, error) {
+	params, err := binaryWriter(nil)
+	if err != nil {
+		return nil, err
+	}
+	s := rpc.JSONRPC{
+		JSONRPC: "2.0",
+		Method:  "list_accounts",
+		Params:  params,
+		Id:      0,
+	}
+	body, err := c.requestResponse(s)
+	if err != nil {
+		return nil, err
+	}
+	var status struct {
+		Status string
+		Data   *core.ResponseListAccounts
+		Error  string
+	}
+	binary.ReadJSON(&status, body, &err)
+	if err != nil {
+		return nil, err
+	}
+	if status.Error != "" {
+		return nil, fmt.Errorf(status.Error)
+	}
+	return status.Data, nil
+}

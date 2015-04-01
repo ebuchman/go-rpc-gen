@@ -5,9 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
+	gofmt "go/format"
 	goparser "go/parser"
 	gotoken "go/token"
-	"io/ioutil"
+	//"io/ioutil"
 	"os"
 	"path"
 	"strconv"
@@ -120,9 +121,21 @@ type %s interface{
 	// save buffer to file
 	newFile := "client_methods.go"
 	data := buf.Bytes()
-	if err := ioutil.WriteFile(newFile, data, 0660); err != nil {
+
+	node, err := goparser.ParseFile(fset, "", data, 0)
+	if err != nil {
 		panic(err)
 	}
+
+	f, err := os.Create(newFile)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	gofmt.Node(f, fset, node)
+	/*if err := ioutil.WriteFile(newFile, data, 0660); err != nil {
+		panic(err)
+	}*/
 }
 
 func defToCall(def string, args []string) string {
