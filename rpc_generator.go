@@ -22,7 +22,7 @@ var (
 	interfaceF = flag.String("interface", "", "interface type to define the rpc methods on")
 	typeF      = flag.String("type", "", "comma separated list of types that should implement the interface")
 	pkgF       = flag.String("pkg", "", "package containing functions providing the core functionality for the rpc")
-	outF       = flag.String("out", "_methods.go", "output file for client methods")
+	outF       = flag.String("out", "client_methods.go", "output file for client methods")
 	outPkgF    = flag.String("out-pkg", "", "name of the package for which code is to be generated")
 	excludeF   = flag.String("exclude", "", "comma separated list of files to exclude public functions from (relative to pkg)")
 	//templatesF = flag.String("templates", ".", "file/s in which the template functions are located")
