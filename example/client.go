@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/tendermint/tendermint2/binary"
-	"github.com/tendermint/tendermint2/rpc"
+	"github.com/tendermint/tendermint/binary"
+	"github.com/tendermint/tendermint/rpc"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -110,7 +110,7 @@ func (c *ClientHTTP) RequestResponse(method string, values url.Values) (*Respons
 	return status, nil
 }
 
-func (c *ClientJSON) requestResponse(s rpc.JSONRPC) ([]byte, error) {
+func (c *ClientJSON) requestResponse(s rpc.RPCRequest) ([]byte, error) {
 	b, err := json.Marshal(s)
 	if err != nil {
 		return nil, err
@@ -185,8 +185,8 @@ func argsToURLValues(argNames []string, args ...interface{}) (url.Values, error)
 }
 
 /*rpc-gen:imports:
-github.com/tendermint/tendermint2/binary
-github.com/tendermint/tendermint2/rpc
+github.com/tendermint/tendermint/binary
+github.com/tendermint/tendermint/rpc
 net/http
 io/ioutil
 fmt
@@ -199,7 +199,7 @@ fmt
 	if err != nil{
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  {{lowername}},
 		Params:  params,

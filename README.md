@@ -38,9 +38,9 @@ where the functionality for calling over rpc is specified in comments using an e
 A more thorough example is provided in the `example` directory. See `example/client.go` for `go-rpc-gen` directives and the templates for the client functions.
 The generated methods are in `client_methods.go`.
 
-eg. `go-rpc-gen -interface Client -pkg core -type *ClientHTTP,*ClientJSON -exclude pipe.go -out-pkg rpc`
+eg. `go-rpc-gen -interface Client -pkg core -dir core -type *ClientHTTP,*ClientJSON -exclude pipe.go -out-pkg rpc`
 
-will make a new interface `Client`, with all the exported methods from the package `core` but excluding the files `pipe.go`. 
+will make a new interface `Client`, with all the exported methods from the package `core` (found in directory `core`) but excluding the files `pipe.go`. 
 Two implementations of the interface are generated in this case, one on `*ClientHTTP` and one on `*ClientJSON`.
 The programs author is required to provide one rpc function template for each type, which `rpc-gen` will autocomplete.
 

@@ -11,19 +11,18 @@ import (
 	"unicode"
 )
 
-// asserts the map has only one item and returns it
-func onePkg(pkgs map[string]*ast.Package) *ast.Package {
-	if len(pkgs) > 1 {
-		panic("More than one package found. Exiting")
+//--------------------------------------------------------------------------------
+// string manipulation of source code
+
+// strip "*" and/or "[]" from the front of a string
+func stripPointerArray(imp string) (string, string) {
+	pre := ""
+	for i := 0; i < len(imp); i++ {
+		if strings.Contains("[]*", imp[i:i+1]) {
+			pre += imp[i : i+1]
+		}
 	}
-	pkg := new(ast.Package)
-	var pkgname string
-	for n, p := range pkgs {
-		pkg = p
-		pkgname = n
-	}
-	_ = pkgname
-	return pkg
+	return imp[len(pre):], pre
 }
 
 // get the $GOPATH relative path from the dir
@@ -73,6 +72,9 @@ func typeToString(typ ast.Expr) string {
 	panic(fmt.Sprintf("unknown type %v", reflect.TypeOf(typ)))
 }
 
+//--------------------------------------------------------------------------------
+// get lists of nodes (comments, funcs, imports) from pkg
+
 // return a list of all comments
 func getComments(pkg *ast.Package) []*ast.Comment {
 	// is this a comment or what
@@ -107,6 +109,25 @@ func getImports(pkg *ast.Package, pkgPath string) map[string]string {
 	return allImps
 }
 
+// returns a list of all exported functions in a pkg
+func getFuncs(pkg *ast.Package) map[string]*ast.Object {
+	objs := make(map[string]*ast.Object)
+	fs := pkg.Files
+	for _, f := range fs {
+		// Print the scope
+		for n, o := range f.Scope.Objects {
+			if o.Kind == ast.Fun && ast.IsExported(n) {
+				objs[n] = o
+			}
+		}
+
+	}
+	return objs
+}
+
+//--------------------------------------------------------------------------------
+// other parsing utilities
+
 // check if the type is builtin or defined
 func isBuiltin(arg string) bool {
 	arg, _ = stripPointerArray(arg)
@@ -137,33 +158,6 @@ func isBuiltin(arg string) bool {
 	}
 }
 
-// strip "*" and/or "[]" from the front of a string
-func stripPointerArray(imp string) (string, string) {
-	pre := ""
-	for i := 0; i < len(imp); i++ {
-		if strings.Contains("[]*", imp[i:i+1]) {
-			pre += imp[i : i+1]
-		}
-	}
-	return imp[len(pre):], pre
-}
-
-// returns a list of all exported functions in a pkg
-func getFuncs(pkg *ast.Package) map[string]*ast.Object {
-	objs := make(map[string]*ast.Object)
-	fs := pkg.Files
-	for _, f := range fs {
-		// Print the scope
-		for n, o := range f.Scope.Objects {
-			if o.Kind == ast.Fun && ast.IsExported(n) {
-				objs[n] = o
-			}
-		}
-
-	}
-	return objs
-}
-
 // returns a filter function for parsing a directory
 func returnFilter(excludes []string) func(os.FileInfo) bool {
 	return func(info os.FileInfo) bool {
@@ -177,4 +171,23 @@ func returnFilter(excludes []string) func(os.FileInfo) bool {
 		}
 		return !info.IsDir() && !excluded && path.Ext(name) == ".go" && !strings.HasSuffix(name, "_test.go")
 	}
+}
+
+// asserts the map has only one item and returns it
+func onePkg(pkgs map[string]*ast.Package) *ast.Package {
+	if len(pkgs) > 1 {
+		panic("More than one package found. Exiting")
+	}
+	pkg := new(ast.Package)
+	var pkgname string
+	for n, p := range pkgs {
+		pkg = p
+		pkgname = n
+	}
+	_ = pkgname
+	return pkg
+}
+
+func defToCall(def string, args []string) string {
+	return ""
 }

@@ -5,10 +5,10 @@ package rpc
 import (
 	"fmt"
 	"github.com/ebuchman/go-rpc-gen/example/core"
-	"github.com/tendermint/tendermint2/account"
-	"github.com/tendermint/tendermint2/binary"
-	"github.com/tendermint/tendermint2/rpc"
-	"github.com/tendermint/tendermint2/types"
+	"github.com/tendermint/tendermint/account"
+	"github.com/tendermint/tendermint/binary"
+	"github.com/tendermint/tendermint/rpc"
+	"github.com/tendermint/tendermint/types"
 	"io/ioutil"
 	"net/http"
 )
@@ -321,7 +321,7 @@ func (c *ClientJSON) BlockchainInfo(minHeight uint, maxHeight uint) (*core.Respo
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "blockchain_info",
 		Params:  params,
@@ -351,7 +351,7 @@ func (c *ClientJSON) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error)
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "broadcast_tx",
 		Params:  params,
@@ -381,7 +381,7 @@ func (c *ClientJSON) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "gen_priv_account",
 		Params:  params,
@@ -411,7 +411,7 @@ func (c *ClientJSON) GetAccount(address []byte) (*core.ResponseGetAccount, error
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "get_account",
 		Params:  params,
@@ -441,7 +441,7 @@ func (c *ClientJSON) GetBlock(height uint) (*core.ResponseGetBlock, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "get_block",
 		Params:  params,
@@ -471,7 +471,7 @@ func (c *ClientJSON) ListAccounts() (*core.ResponseListAccounts, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "list_accounts",
 		Params:  params,
@@ -501,7 +501,7 @@ func (c *ClientJSON) ListValidators() (*core.ResponseListValidators, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "list_validators",
 		Params:  params,
@@ -531,7 +531,7 @@ func (c *ClientJSON) NetInfo() (*core.ResponseNetInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "net_info",
 		Params:  params,
@@ -561,7 +561,7 @@ func (c *ClientJSON) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "sign_tx",
 		Params:  params,
@@ -591,7 +591,7 @@ func (c *ClientJSON) Status() (*core.ResponseStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	s := rpc.JSONRPC{
+	s := rpc.RPCRequest{
 		JSONRPC: "2.0",
 		Method:  "status",
 		Params:  params,

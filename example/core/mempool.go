@@ -2,10 +2,10 @@ package core
 
 import (
 	"fmt"
-	. "github.com/tendermint/tendermint2/common"
-	"github.com/tendermint/tendermint2/merkle"
-	"github.com/tendermint/tendermint2/state"
-	"github.com/tendermint/tendermint2/types"
+	. "github.com/tendermint/tendermint/common"
+	"github.com/tendermint/tendermint/merkle"
+	"github.com/tendermint/tendermint/state"
+	"github.com/tendermint/tendermint/types"
 )
 
 //-----------------------------------------------------------------------------
