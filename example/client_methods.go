@@ -14,7 +14,7 @@ import (
 )
 
 type Client interface {
-	BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error)
+	BlockchainInfo(minHeight uint, maxHeight uint) (*core.ResponseBlockchainInfo, error)
 	BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error)
 	GenPrivAccount() (*core.ResponseGenPrivAccount, error)
 	GetAccount(address []byte) (*core.ResponseGetAccount, error)
@@ -26,8 +26,8 @@ type Client interface {
 	Status() (*core.ResponseStatus, error)
 }
 
-func (c *ClientHTTP) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error) {
-	values, err := argsToURLValues([]string{"minHeight"}, minHeight)
+func (c *ClientHTTP) BlockchainInfo(minHeight uint, maxHeight uint) (*core.ResponseBlockchainInfo, error) {
+	values, err := argsToURLValues([]string{"minHeight", "maxHeight"}, minHeight, maxHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (c *ClientHTTP) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error)
 }
 
 func (c *ClientHTTP) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
-	values, err := argsToURLValues(nil, nil)
+	values, err := argsToURLValues(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (c *ClientHTTP) GetBlock(height uint) (*core.ResponseGetBlock, error) {
 }
 
 func (c *ClientHTTP) ListAccounts() (*core.ResponseListAccounts, error) {
-	values, err := argsToURLValues(nil, nil)
+	values, err := argsToURLValues(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (c *ClientHTTP) ListAccounts() (*core.ResponseListAccounts, error) {
 }
 
 func (c *ClientHTTP) ListValidators() (*core.ResponseListValidators, error) {
-	values, err := argsToURLValues(nil, nil)
+	values, err := argsToURLValues(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (c *ClientHTTP) ListValidators() (*core.ResponseListValidators, error) {
 }
 
 func (c *ClientHTTP) NetInfo() (*core.ResponseNetInfo, error) {
-	values, err := argsToURLValues(nil, nil)
+	values, err := argsToURLValues(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func (c *ClientHTTP) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*
 }
 
 func (c *ClientHTTP) Status() (*core.ResponseStatus, error) {
-	values, err := argsToURLValues(nil, nil)
+	values, err := argsToURLValues(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -316,8 +316,8 @@ func (c *ClientHTTP) Status() (*core.ResponseStatus, error) {
 	return status.Data, nil
 }
 
-func (c *ClientJSON) BlockchainInfo(minHeight uint) (*core.ResponseBlockchainInfo, error) {
-	params, err := binaryWriter(minHeight)
+func (c *ClientJSON) BlockchainInfo(minHeight uint, maxHeight uint) (*core.ResponseBlockchainInfo, error) {
+	params, err := binaryWriter(minHeight, maxHeight)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +377,7 @@ func (c *ClientJSON) BroadcastTx(tx types.Tx) (*core.ResponseBroadcastTx, error)
 }
 
 func (c *ClientJSON) GenPrivAccount() (*core.ResponseGenPrivAccount, error) {
-	params, err := binaryWriter(nil)
+	params, err := binaryWriter()
 	if err != nil {
 		return nil, err
 	}
@@ -467,7 +467,7 @@ func (c *ClientJSON) GetBlock(height uint) (*core.ResponseGetBlock, error) {
 }
 
 func (c *ClientJSON) ListAccounts() (*core.ResponseListAccounts, error) {
-	params, err := binaryWriter(nil)
+	params, err := binaryWriter()
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +497,7 @@ func (c *ClientJSON) ListAccounts() (*core.ResponseListAccounts, error) {
 }
 
 func (c *ClientJSON) ListValidators() (*core.ResponseListValidators, error) {
-	params, err := binaryWriter(nil)
+	params, err := binaryWriter()
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +527,7 @@ func (c *ClientJSON) ListValidators() (*core.ResponseListValidators, error) {
 }
 
 func (c *ClientJSON) NetInfo() (*core.ResponseNetInfo, error) {
-	params, err := binaryWriter(nil)
+	params, err := binaryWriter()
 	if err != nil {
 		return nil, err
 	}
@@ -587,7 +587,7 @@ func (c *ClientJSON) SignTx(tx types.Tx, privAccounts []*account.PrivAccount) (*
 }
 
 func (c *ClientJSON) Status() (*core.ResponseStatus, error) {
-	params, err := binaryWriter(nil)
+	params, err := binaryWriter()
 	if err != nil {
 		return nil, err
 	}
