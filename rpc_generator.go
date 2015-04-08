@@ -21,8 +21,9 @@ var (
 
 	interfaceF = flag.String("interface", "", "interface type to define the rpc methods on")
 	typeF      = flag.String("type", "", "comma separated list of types that should implement the interface")
-	pkgF       = flag.String("pkg", "", "package containing functions providing the core functionality for the rpc")
-	outF       = flag.String("out", "client_methods.go", "output file for client methods")
+	pkgNameF   = flag.String("pkg", "", "package containing functions providing the core functionality for the rpc")
+	dirF       = flag.String("dir", "", "relative directory of package containing functions")
+	outF       = flag.String("out", "client_methods.go", "output package for client methods")
 	outPkgF    = flag.String("out-pkg", "", "name of the package for which code is to be generated")
 	excludeF   = flag.String("exclude", "", "comma separated list of files to exclude public functions from (relative to pkg)")
 	//templatesF = flag.String("templates", ".", "file/s in which the template functions are located")
@@ -34,7 +35,8 @@ func main() {
 
 	iface := *interfaceF
 	types := strings.Split(*typeF, ",")
-	dir := *pkgF
+	pkgName := *pkgNameF
+	dir := *dirF
 	outFile := *outF
 	excludes := strings.Split(*excludeF, ",")
 	outPkg := *outPkgF
@@ -77,7 +79,7 @@ type %s interface{
 
 	imports := getImports(corePkg, corePkgImportPath)
 	// populate interface and stringify func defs
-	stringFuncs, interfaceDef, neededImports := populateInterface(interfaceDef, coreFuncs, imports, dir, corePkgImportPath)
+	stringFuncs, interfaceDef, neededImports := populateInterface(interfaceDef, coreFuncs, imports, pkgName, corePkgImportPath)
 
 	// add base imports to neededImports
 	for k, v := range rpcGen.imports {
