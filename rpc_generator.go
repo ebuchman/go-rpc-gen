@@ -162,7 +162,7 @@ func (rg *RpcGen) compileJob(buf *bytes.Buffer, f Func, job Job) error {
 			fmt.Fprintf(buf, joinArgTypes(argNames, argTypes))
 		case "ident":
 			if len(f.ArgNames) == 0 {
-				fmt.Fprintf(buf, "nil")
+				fmt.Fprintf(buf, "")
 			} else {
 				fmt.Fprintf(buf, strings.Join(argNames, ", "))
 			}
@@ -244,12 +244,12 @@ type Func struct {
 	ReturnTypes []string
 }
 
-func NewFunc(name string, nargs, nret int) Func {
+func NewFunc(name string) Func {
 	return Func{
 		Name:        name,
-		ArgNames:    make([]string, nargs),
-		ArgTypes:    make([]string, nargs),
-		ReturnTypes: make([]string, nret), //[]string{"*Response" + name},
+		ArgNames:    []string{},
+		ArgTypes:    []string{},
+		ReturnTypes: []string{},
 	}
 }
 
@@ -259,15 +259,17 @@ func objectToStringFunc(name string, obj *ast.Object) Func {
 	ftype := fdecl.Type
 	argList := ftype.Params.List
 	retList := ftype.Results.List
-	thisFunc := NewFunc(name, len(argList), len(retList))
-	for i, p := range argList {
+	fmt.Println(name, argList, retList)
+	thisFunc := NewFunc(name) //, len(argList), len(retList))
+	for _, p := range argList {
 		t := typeToString(p.Type)
-		n := p.Names[0].Name
-		thisFunc.ArgNames[i] = n
-		thisFunc.ArgTypes[i] = t
+		for _, n := range p.Names {
+			thisFunc.ArgNames = append(thisFunc.ArgNames, n.Name)
+			thisFunc.ArgTypes = append(thisFunc.ArgTypes, t)
+		}
 	}
-	for i, r := range retList {
-		thisFunc.ReturnTypes[i] = typeToString(r.Type)
+	for _, r := range retList {
+		thisFunc.ReturnTypes = append(thisFunc.ReturnTypes, typeToString(r.Type))
 	}
 	return thisFunc
 }
